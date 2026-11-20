@@ -9,15 +9,19 @@ function render(){
  const groups=residuals.map((g,j)=>g.map(r=>6+(j-16/15)*separation+r*spread));
  by('gapVal').textContent=separation.toFixed(2)+' min';by('spreadVal').textContent=spread.toFixed(2)+' min (SD)';
  const all=groups.flat(),overall=mean(all),means=groups.map(mean);
- const within=groups.reduce((s,g,j)=>s+g.reduce((v,y)=>v+(y-means[j])**2,0),0)/12;
- const between=means.reduce((s,v,j)=>s+groups[j].length*(v-overall)**2,0)/2;
+ const sse=groups.reduce((s,g,j)=>s+g.reduce((v,y)=>v+(y-means[j])**2,0),0);
+ const within=sse/12;
+ const sstr=means.reduce((s,v,j)=>s+groups[j].length*(v-overall)**2,0);
+ const between=sstr/2;
  const entries=groups.flatMap((g,j)=>g.map((v,i)=>({j,i,v})));
  const f=between/within;
  // Exact F(2,12) right-tail probability.
  const prob=(1+f/6)**-6,reject=prob<.05;
  const pText=(prob<.001?prob.toExponential(2):prob.toPrecision(4));
  const decision=reject?'Reject H₀':'Do not reject H₀';
- by('f').textContent=f.toFixed(2);by('pv').textContent=pText;by('decision').textContent=decision;
+ by('f').textContent=f.toFixed(2);by('pv').textContent=pText;by('sstr').textContent=sstr.toFixed(2);
+ by('sse').textContent=sse.toFixed(2);
+ by('sst').textContent=(sstr+sse).toFixed(2);
  by('msb').textContent=between.toFixed(2);by('msw').textContent=within.toFixed(2);
  by('statStep').textContent='f* = MSTR / MSE ≈ '+between.toFixed(2)+' / '+within.toFixed(2)+' ≈ '+f.toFixed(2)+'. Numerator df = 3 − 1 = 2. Denominator df = 15 − 3 = 12.';
  by('pStep').textContent='P(F₂,₁₂ ≥ '+f.toFixed(2)+') ≈ '+pText+'. If all three population means were equal, this is the probability of an F statistic at least this large.';
